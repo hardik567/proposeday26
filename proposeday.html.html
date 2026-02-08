@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find My Heart ❤️</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&family=Dancing+Script:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #ffc0cb; /* The "Lights On" color */
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            cursor: none; /* Hide default cursor for immersion */
+        }
+
+        /* --- THE DARKNESS LAYER --- */
+        #darkness {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 10;
+            /* This creates the flashlight hole */
+            mask-image: radial-gradient(circle 150px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 150px at var(--x, 50%) var(--y, 50%), transparent 20%, black 100%);
+            
+            /* Pointer events none ensures clicks go through to the elements below */
+            pointer-events: none; 
+            transition: opacity 1.5s ease;
+        }
+
+        /* --- HIDDEN CONTENT (Visible only with flashlight) --- */
+        .hidden-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #111; /* Dark background under the flashlight */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .clue {
+            position: absolute;
+            color: #444; /* Dim text */
+            font-size: 1.2rem;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* The Glowing Heart she needs to find */
+        .find-me {
+            font-size: 80px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 20px red);
+            animation: beat 1s infinite;
+            z-index: 20; /* Above everything */
+            position: relative;
+        }
+
+        /* --- THE PROPOSAL (Initially Hidden) --- */
+        #proposal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, #fff0f3 0%, #ffc0cb 100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            z-index: 15;
+            text-align: center;
+        }
+
+        #proposal h1 {
+            font-family: 'Dancing Script', cursive;
+            color: #d62828;
+            font-size: 4rem;
+            margin: 0;
+            transform: translateY(50px);
+            transition: transform 1s ease;
+        }
+
+        #proposal p {
+            font-size: 1.5rem;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .big-btn {
+            margin-top: 30px;
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            background: #ff2e63;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 46, 99, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Helper instruction */
+        .instruction {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            text-align: center;
+            color: #555;
+            font-size: 14px;
+            z-index: 6;
+            pointer-events: none;
+            animation: fadeOut 5s forwards; /* Disappear after 5s */
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="darkness"></div>
+
+    <div class="hidden-content" id="hiddenRoom">
+        <div class="clue" style="top: 20%; left: 20%">It's cold here...</div>
+        <div class="clue" style="top: 80%; left: 80%">Where are you?</div>
+        <div class="clue" style="top: 15%; left: 70%">I need your light.</div>
+        <div class="clue" style="top: 70%; left: 10%">Keep looking...</div>
+        
+        <div class="find-me" onclick="turnOnLights()">❤️</div>
+        
+        <div class="instruction">Use your cursor/finger to find my heart...</div>
+    </div>
+
+    <div id="proposal">
+        <h1>Will You Be My Valentine?</h1>
+        <p>You light up my world. ✨</p>
+        <button class="big-btn" onclick="celebrate()">YES!</button>
+    </div>
+
+    <script>
+        const darkness = document.getElementById('darkness');
+        const hiddenRoom = document.getElementById('hiddenRoom');
+        const proposal = document.getElementById('proposal');
+        const body = document.body;
+
+        // 1. Flashlight Logic
+        function updateFlashlight(e) {
+            let x, y;
+            
+            if (e.type.startsWith('touch')) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            // Update the CSS mask position
+            darkness.style.setProperty('--x', x + 'px');
+            darkness.style.setProperty('--y', y + 'px');
+        }
+
+        document.addEventListener('mousemove', updateFlashlight);
+        document.addEventListener('touchmove', updateFlashlight);
+
+        // 2. Reveal Logic (When she clicks the heart)
+        function turnOnLights() {
+            // Fade out the darkness and the hidden room
+            darkness.style.opacity = '0';
+            hiddenRoom.style.transition = 'opacity 1s';
+            hiddenRoom.style.opacity = '0';
+
+            // Show cursor again
+            body.style.cursor = 'default';
+
+            // Wait 1 second then show proposal
+            setTimeout(() => {
+                darkness.style.display = 'none';
+                hiddenRoom.style.display = 'none';
+                
+                proposal.style.opacity = '1';
+                proposal.style.pointerEvents = 'all';
+                proposal.querySelector('h1').style.transform = 'translateY(0)';
+            }, 1000);
+        }
+
+        // 3. Celebration Logic
+        function celebrate() {
+            // Confetti explosion
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                // Launch confetti from left and right edges
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+
+            alert("I love you! ❤️");
+        }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</body>
+</html>
